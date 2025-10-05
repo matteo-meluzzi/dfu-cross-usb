@@ -1,0 +1,12 @@
+[package]
+name = "dfu-cross-usb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dfu-core = { version = "0.7", features = ["std"] }
+thiserror = "2.0.17"
+cross_usb = { git = "https://github.com/matteo-meluzzi/cross-usb.git" }
+futures = "0.3.31"
+tokio = { version = "1.47.1", default-features = false, features = ["sync"] }
+usb = "0.3"
