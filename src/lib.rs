@@ -1,23 +1,19 @@
-use std::sync::Arc;
-
 use cross_usb::usb::{
     ControlIn, ControlOut, ControlType, Recipient, UsbDevice, UsbDeviceInfo, UsbInterface,
 };
 use dfu_core::DfuProtocol;
 use futures::channel::oneshot;
 use futures::executor::block_on;
+use std::rc::Rc;
 use thiserror::Error;
-use wasm_bindgen_futures::spawn_local;
-
-// USB standard constants from the `usb` crate
 use usb::standard_request;
+use wasm_bindgen_futures::spawn_local;
 
 // DFU-specific descriptor constants (DFU 1.1 Specification, Section 4.2.4)
 // Reference: https://www.usb.org/sites/default/files/DFU_1.1.pdf
 const DFU_FUNCTIONAL_DESCRIPTOR_TYPE: u8 = 0x21;
 const DFU_FUNCTIONAL_DESCRIPTOR_INDEX: u8 = 0x00;
 
-// Type aliases for DFU helper wrappers
 pub type DfuSync = dfu_core::sync::DfuSync<DfuCrossUsb, Error>;
 pub type DfuAsync = dfu_core::asynchronous::DfuASync<DfuCrossUsb, Error>;
 
@@ -40,35 +36,23 @@ pub enum Error {
 }
 
 pub struct DfuCrossUsb {
-    device: Arc<cross_usb::Device>,
-    interface: Arc<cross_usb::Interface>,
+    device: Rc<cross_usb::Device>,
+    interface: Rc<cross_usb::Interface>,
     interface_number: u8,
     descriptor: dfu_core::functional_descriptor::FunctionalDescriptor,
     protocol: dfu_core::DfuProtocol<dfu_core::memory_layout::MemoryLayout>,
 }
 
 impl DfuCrossUsb {
-    /// Open a DFU device from a device info.
-    ///
-    /// Since cross_usb doesn't expose descriptor parsing (limited in Web USB),
-    /// we use control transfers to fetch the DFU functional descriptor.
-    ///
-    /// # Arguments
-    /// * `device_info` - The device info to open
-    /// * `interface_num` - The interface number to claim (usually 0)
-    /// * `alt_setting` - The alternate setting to use (usually 0)
+    /// Open a USB device for DFU
     pub async fn open(
         device_info: cross_usb::DeviceInfo,
         interface_number: u8,
         alt_setting: u8,
     ) -> Result<Self, Error> {
-        // Open the device
         let device = device_info.open().await?;
-
-        // Open the interface
         let interface = device.open_interface(interface_number).await?;
 
-        // Set alternate setting using control transfer
         interface
             .control_out(ControlOut {
                 control_type: ControlType::Standard,
@@ -98,32 +82,23 @@ impl DfuCrossUsb {
             dfu_core::functional_descriptor::FunctionalDescriptor::from_bytes(&descriptor_bytes)
                 .ok_or(Error::FunctionalDescriptorNotFound)??;
 
-        // Try to read interface string descriptor for DfuSe memory layout
-        // This requires GET_DESCRIPTOR for string, but may not be available
-        // For now, use empty string (works for standard DFU, DfuSe may need memory layout passed in)
-        let interface_string = String::new();
-
-        let protocol = DfuProtocol::new(&interface_string, descriptor.dfu_version)?;
+        let protocol = DfuProtocol::new("", descriptor.dfu_version)?;
 
         Ok(Self {
-            device: Arc::new(device),
-            interface: Arc::new(interface),
+            device: Rc::new(device),
+            interface: Rc::new(interface),
             interface_number,
             descriptor,
             protocol,
         })
     }
 
-    /// Wrap device in a *sync* DFU helper.
-    ///
-    /// This provides convenient methods like `download()` for firmware uploads.
+    /// Wrap device in a sync DFU.
     pub fn into_sync_dfu(self) -> DfuSync {
         DfuSync::new(self)
     }
 
-    /// Wrap device in a *async* DFU helper.
-    ///
-    /// This provides convenient methods like `download()` for firmware uploads.
+    /// Wrap device in an async DFU.
     pub fn into_async_dfu(self) -> DfuAsync {
         DfuAsync::new(self)
     }

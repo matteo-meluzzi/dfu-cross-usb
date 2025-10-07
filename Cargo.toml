@@ -2,11 +2,20 @@
 name = "dfu-cross-usb"
 version = "0.1.0"
 edition = "2024"
+authors = ["Matteo Meluzzi <judomat@meluzzi.com>"]
+description = "A Rust crate for USB DFU operations using cross_usb, with support for WASM targets"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/matteo-meluzzi/dfu-cross-usb"
+homepage = "https://github.com/matteo-meluzzi/dfu-cross-usb"
+documentation = "https://docs.rs/dfu-cross-usb"
+readme = "README.md"
+keywords = ["usb", "dfu", "wasm", "firmware", "update"]
+categories = ["hardware-support", "wasm", "embedded"]
 
 [dependencies]
 thiserror = "2.0.17"
 futures = "0.3.31"
 usb = "0.3"
 wasm-bindgen-futures = "0.4"
-cross_usb = { git = "https://github.com/G2-Games/cross-usb.git" }
+cross_usb = { version = "0.4.0", git = "https://github.com/G2-Games/cross-usb.git" }
 dfu-core = { version = "0.7.0", features = ["std", "async"] }
