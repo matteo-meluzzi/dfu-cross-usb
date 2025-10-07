@@ -1,0 +1,22 @@
+name: Rust Build
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Add WASM target
+      run: rustup target add wasm32-unknown-unknown
+
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy
+      run: cargo clippy -- -D warnings
+
+    - name: Build examples
+      run: cargo build --examples
