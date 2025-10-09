@@ -17,5 +17,5 @@ thiserror = "2.0.17"
 futures = "0.3.31"
 usb = "0.3"
 wasm-bindgen-futures = "0.4"
-cross_usb = { version = "0.4.0", git = "https://github.com/G2-Games/cross-usb.git" }
+cross_usb = { version = "0.4.1" }
 dfu-core = { version = "0.7.0", features = ["std", "async"] }

@@ -50,8 +50,9 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "cross_usb"
-version = "0.4.0"
-source = "git+https://github.com/G2-Games/cross-usb.git#71fafc0b0d7ef73dcc7162cd5d93488c1ec39996"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "285fdbd6222a650d7b453290c6c72bd72ffd27b95c928470f3792539aba6edf2"
 dependencies = [
  "js-sys",
  "nusb",

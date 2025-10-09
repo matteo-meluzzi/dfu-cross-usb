@@ -9,6 +9,9 @@ use thiserror::Error;
 use usb::standard_request;
 use wasm_bindgen_futures::spawn_local;
 
+pub use cross_usb;
+pub use dfu_core;
+
 // DFU-specific descriptor constants (DFU 1.1 Specification, Section 4.2.4)
 // Reference: https://www.usb.org/sites/default/files/DFU_1.1.pdf
 const DFU_FUNCTIONAL_DESCRIPTOR_TYPE: u8 = 0x21;
