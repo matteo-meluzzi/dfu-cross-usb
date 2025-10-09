@@ -48,32 +48,34 @@ impl DfuCrossUsb {
     pub async fn open(
         device_info: cross_usb::DeviceInfo,
         interface_number: u8,
-        alt_setting: u8,
+        alternative_setting: u8,
     ) -> Result<Self, Error> {
         let device = device_info.open().await?;
         let interface = device.open_interface(interface_number).await?;
 
+        // Set alternative setting via SET_INTERFACE standard interface request.
+        // https://www.beyondlogic.org/usbnutshell/usb6.shtml#StandardDeviceRequests
         interface
             .control_out(ControlOut {
                 control_type: ControlType::Standard,
                 recipient: Recipient::Interface,
                 request: standard_request::SET_INTERFACE,
-                value: alt_setting as u16,
+                value: alternative_setting as u16,
                 index: interface_number as u16,
                 data: &[],
             })
             .await?;
 
-        // Fetch the DFU functional descriptor using a control transfer
-        // wValue format: high byte = descriptor type, low byte = descriptor index
+        // Get the DFU functional descriptor via GET_DESCRIPTOR standard device request.
+        // https://www.beyondlogic.org/usbnutshell/usb6.shtml#StandardDeviceRequests
         let descriptor_bytes = interface
             .control_in(ControlIn {
                 control_type: ControlType::Standard,
-                recipient: Recipient::Interface,
+                recipient: Recipient::Device,
                 request: standard_request::GET_DESCRIPTOR,
                 value: ((DFU_FUNCTIONAL_DESCRIPTOR_TYPE as u16) << 8)
                     | (DFU_FUNCTIONAL_DESCRIPTOR_INDEX as u16),
-                index: interface_number as u16,
+                index: 0,
                 length: 9, // DFU functional descriptor is 9 bytes
             })
             .await?;
